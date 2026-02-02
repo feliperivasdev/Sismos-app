@@ -34,15 +34,28 @@ def get_column_index(columns, search_terms):
 
 @st.cache_data
 def load_raw_data(file):
-    """Carga el CSV 'crudo' sin procesar nombres de columnas."""
-    try:
-        df = pd.read_csv(file)
-        if len(df.columns) < 2:
-            raise ValueError
-    except:
-        file.seek(0)
-        df = pd.read_csv(file, sep=None, engine='python')
-    return df
+    """Carga el CSV 'crudo' intentando diferentes encodings."""
+    encodings_to_try = ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252']
+    
+    for encoding in encodings_to_try:
+        try:
+            file.seek(0)
+            # Intentamos leer con el encoding actual
+            df = pd.read_csv(file, encoding=encoding)
+            
+            # Validación básica de estructura
+            if len(df.columns) < 2:
+                # Si falló la detección de separador, intentamos engine python con separador automático
+                file.seek(0)
+                df = pd.read_csv(file, sep=None, engine='python', encoding=encoding)
+                
+            return df
+        except (UnicodeDecodeError, pd.errors.ParserError):
+            continue
+            
+    # Último intento: Forzar lectura ignorando errores de caracteres
+    file.seek(0)
+    return pd.read_csv(file, sep=None, engine='python', encoding_errors='replace')
 
 if uploaded_file is not None:
     # 1. Carga Cruda
