@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import linregress
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import plotly.graph_objects as go
+import storytelling_module
 
 # Configuración de la página
 st.set_page_config(page_title="Análisis Sísmico G-R", layout="wide")
@@ -16,6 +17,8 @@ Sube tu archivo `.csv` (debe contener una columna llamada `Magnitude`) para come
 
 # --- FASE 1: Carga de Datos ---
 with st.sidebar:
+    mode = st.radio("Modo de Visualización", ["Análisis General", "Storytelling"])
+    st.divider()
     st.header("1. Configuración de Datos")
     uploaded_file = st.file_uploader("Cargar archivo CSV (Kaggle)", type=["csv"])
     
@@ -176,6 +179,10 @@ if uploaded_file is not None:
     st.success(f"Datos procesados: {len(df)} registros válidos.")
     
     # --- VISUALIZACIÓN POR PESTAÑAS ---
+    if mode == "Storytelling":
+        storytelling_module.render_storytelling(df)
+        st.stop()
+    
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Análisis General", "📈 Evolución Temporal", "🗺️ Mapa Geoespacial", "📉 Profundidad"])
 
     with tab1:
