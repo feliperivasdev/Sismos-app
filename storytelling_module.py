@@ -252,14 +252,24 @@ def _render_animated_map(df, start_date, end_date, center_lat=None, center_lon=N
 
 def _render_period_comparison(df, min_date, max_date):
     """Comparación antes vs después: dos periodos lado a lado."""
+    # Normalizar a datetime.date y asegurar min <= max (evita errores con st.date_input)
     try:
         min_d = min_date.date() if hasattr(min_date, 'date') and not isinstance(min_date, datetime.date) else min_date
         max_d = max_date.date() if hasattr(max_date, 'date') and not isinstance(max_date, datetime.date) else max_date
     except Exception:
         min_d, max_d = min_date, max_date
+    if hasattr(min_d, 'date'):
+        min_d = min_d.date()
+    if hasattr(max_d, 'date'):
+        max_d = max_d.date()
+    if min_d > max_d:
+        min_d, max_d = max_d, min_d
     delta = (max_d - min_d).days if hasattr(max_d - min_d, 'days') else 1
-    half = max(1, delta // 2)
+    delta = max(1, delta)
+    half = delta // 2
     mid = min_d + datetime.timedelta(days=half)
+    if mid > max_d:
+        mid = max_d
     st.markdown("#### 🗓️ Comparar periodos (antes vs después)")
     col_a, col_b = st.columns(2)
     with col_a:
